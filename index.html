@@ -1,301 +1,90 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Confie Tales | A Home of Dreamers and Storytellers</title>
+  <meta charset="UTF-8">
+  <title>Fingerprint/Biometric Test</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Great+Vibes&family=Poppins:wght@300;500;700&display=swap');
-
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-
     body {
-      font-family: 'Poppins', sans-serif;
-      background: radial-gradient(circle at top, #5fe8c1, #7f5af0, #a37cf0);
-      background-size: 400% 400%;
-      animation: gradientShift 15s ease infinite;
-      color: white;
-      overflow-x: hidden;
+      font-family: system-ui, sans-serif;
+      background: #f3f4f6;
+      text-align: center;
+      padding: 32px;
+      color: #111827;
     }
-
-    @keyframes gradientShift {
-      0% {background-position: 0% 50%;}
-      50% {background-position: 100% 50%;}
-      100% {background-position: 0% 50%;}
+    .card {
+      max-width: 720px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
     }
-
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 20px 40px;
-      background: rgba(0, 0, 0, 0.3);
-      backdrop-filter: blur(12px);
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-    }
-
-    header h1 {
-      font-family: 'Great Vibes', cursive;
-      font-size: 2em;
-      letter-spacing: 1px;
-      color: #ffd166;
-      text-shadow: 0 0 15px rgba(255,209,102,0.6);
-    }
-
-    nav {
-      display: flex;
-      gap: 25px;
-      transition: all 0.5s ease;
-    }
-
-    nav a {
-      text-decoration: none;
-      color: white;
-      font-weight: 500;
-      position: relative;
-    }
-
-    nav a::after {
-      content: "";
-      position: absolute;
-      bottom: -5px;
-      left: 0;
-      width: 0%;
-      height: 2px;
-      background: #ffd166;
-      transition: width 0.3s ease;
-    }
-
-    nav a:hover::after {
-      width: 100%;
-    }
-
-    .menu-btn {
-      width: 35px;
-      height: 25px;
-      position: relative;
-      display: none;
-      cursor: pointer;
-    }
-
-    .menu-btn span {
-      position: absolute;
-      width: 100%;
-      height: 4px;
-      background: white;
-      border-radius: 5px;
-      transition: all 0.4s;
-    }
-
-    .menu-btn span:nth-child(1) { top: 0; }
-    .menu-btn span:nth-child(2) { top: 10px; }
-    .menu-btn span:nth-child(3) { top: 20px; }
-
-    .menu-btn.active span:nth-child(1) { transform: rotate(45deg); top: 10px; }
-    .menu-btn.active span:nth-child(2) { opacity: 0; }
-    .menu-btn.active span:nth-child(3) { transform: rotate(-45deg); top: 10px; }
-
-    .btn {
-      padding: 12px 28px;
-      background: linear-gradient(90deg, #ffd166, #ff8b66);
-      color: #222;
+    h1 { font-size: 22px; margin-bottom: 12px; }
+    p { color: #374151; margin-bottom: 20px; }
+    button {
+      padding: 12px 20px;
+      margin: 6px;
       border: none;
-      border-radius: 30px;
-      font-weight: 600;
+      border-radius: 10px;
+      background: #2563eb;
+      color: #fff;
       cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 0 15px rgba(255,209,102,0.5);
+      font-size: 16px;
     }
-
-    .btn:hover {
-      transform: scale(1.1);
-      box-shadow: 0 0 30px rgba(255,209,102,0.8);
-    }
-
-    .hero {
-      position: relative;
-      text-align: center;
-      padding: 150px 20px;
-      overflow: hidden;
-    }
-
-    .hero h2 {
-      font-family: 'Great Vibes', cursive;
-      font-size: 3.5em;
-      margin-bottom: 15px;
-      color: #ffd166;
-      text-shadow: 0 0 15px rgba(255,209,102,0.5);
-      animation: floatText 6s ease-in-out infinite;
-    }
-
-    .hero p {
-      font-size: 1.2em;
-      margin-bottom: 40px;
-      opacity: 0.9;
-    }
-
-    /* Floating animation */
-    @keyframes floatText {
-      0%,100% { transform: translateY(0px); }
-      50% { transform: translateY(-15px); }
-    }
-
-    /* Particle effect */
-    .particle {
-      position: absolute;
-      background: rgba(255,255,255,0.8);
-      border-radius: 50%;
-      pointer-events: none;
-      animation: drift 10s linear infinite;
-    }
-
-    @keyframes drift {
-      0% { transform: translateY(0px) translateX(0px) scale(1); opacity: 1; }
-      100% { transform: translateY(-800px) translateX(200px) scale(0.5); opacity: 0; }
-    }
-
-    .features {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      padding: 100px 20px;
-      gap: 25px;
-    }
-
-    .feature {
-      width: 300px;
-      margin: 20px;
-      padding: 35px;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 25px;
-      text-align: center;
-      transform: scale(0.95);
-      opacity: 0;
-      animation: popUp 0.8s forwards ease-in-out;
-      transition: all 0.3s ease;
-      backdrop-filter: blur(6px);
-    }
-
-    .feature:nth-child(1) { animation-delay: 0.3s; }
-    .feature:nth-child(2) { animation-delay: 0.6s; }
-    .feature:nth-child(3) { animation-delay: 0.9s; }
-
-    .feature:hover {
-      transform: scale(1.05);
-      background: rgba(255,255,255,0.2);
-      box-shadow: 0 0 25px rgba(255,255,255,0.3);
-    }
-
-    .feature h3 {
-      color: #ffd166;
-      margin-bottom: 12px;
-    }
-
-    footer {
-      text-align: center;
-      padding: 35px 20px;
-      font-size: 0.95em;
-      background: rgba(0, 0, 0, 0.3);
-      margin-top: 50px;
-      backdrop-filter: blur(6px);
-    }
-
-    footer a { color: #ffd166; text-decoration: none; }
-
-    @keyframes popUp {
-      from { opacity: 0; transform: translateY(40px) scale(0.9); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
-    }
-
-    @media (max-width: 768px) {
-      .menu-btn { display: block; }
-      nav {
-        flex-direction: column;
-        position: absolute;
-        top: 70px;
-        left: 0;
-        width: 100%;
-        background: rgba(0,0,0,0.85);
-        max-height: 0;
-        overflow: hidden;
-        transition: max-height 0.5s ease;
-      }
-      nav.active {
-        max-height: 400px;
-        padding: 20px 0;
-      }
-      nav a { display: block; padding: 10px 0; }
-    }
+    button.download { background: #10b981; }
+    #status { margin-top: 20px; font-size: 16px; }
+    #details { font-size: 14px; color: #6b7280; margin-top: 10px; }
   </style>
 </head>
 <body>
+  <div class="card">
+    <h1>Fingerprint / Biometric Support Test</h1>
+    <p>Tap the button to test your fingerprint sensor or download this test as a file.</p>
 
-  <header>
-    <h1>Confie Tales</h1>
-    <div class="menu-btn" id="menu-btn">
-      <span></span><span></span><span></span>
-    </div>
-    <nav id="menu">
-      <a href="#">Home</a>
-      <a href="#">Write</a>
-      <a href="#">Publish</a>
-      <a href="#">Community</a>
-      <a href="#">About</a>
-      <a href="#">Contact</a>
-    </nav>
-    <button class="btn">Login</button>
-  </header>
+    <button id="authBtn">Start Test</button>
+    <button class="download" id="downloadBtn">Download This Test File</button>
 
-  <section class="hero" id="hero">
-    <h2>Welcome to Confie Tales</h2>
-    <p>A Home of Dreamers and Storytellers</p>
-    <button class="btn">Start Writing</button>
-  </section>
-
-  <section class="features">
-    <div class="feature">
-      <h3>✨ Publish Instantly</h3>
-      <p>Upload and share your stories with a growing community of writers and readers.</p>
-    </div>
-    <div class="feature">
-      <h3>💬 Connect with Writers</h3>
-      <p>Join meaningful conversations, exchange feedback, and grow your craft.</p>
-    </div>
-    <div class="feature">
-      <h3>🌿 Inspire the World</h3>
-      <p>Your story might be the spark someone needs. Let your words make a difference.</p>
-    </div>
-  </section>
-
-  <footer>
-    <p>© 2025 Confie Tales | A Home of Dreamers and Storytellers</p>
-    <p>Contact: <a href="mailto:confietales@gmail.com">confietales@gmail.com</a></p>
-  </footer>
+    <div id="status"></div>
+    <div id="details"></div>
+  </div>
 
   <script>
-    // Menu toggle
-    const menuBtn = document.getElementById('menu-btn');
-    const menu = document.getElementById('menu');
-    menuBtn.addEventListener('click', () => {
-      menuBtn.classList.toggle('active');
-      menu.classList.toggle('active');
+    const status = document.getElementById('status');
+    const details = document.getElementById('details');
+    const authBtn = document.getElementById('authBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+
+    authBtn.addEventListener('click', async () => {
+      details.innerText = '';
+      if (!window.PublicKeyCredential) {
+        status.innerText = "❌ Your browser doesn't support fingerprint/biometric API.";
+        return;
+      }
+
+      try {
+        const challenge = new Uint8Array(32);
+        window.crypto.getRandomValues(challenge);
+
+        await navigator.credentials.get({
+          publicKey: { challenge, userVerification: "required" }
+        });
+
+        status.innerText = "✅ Fingerprint detected successfully!";
+      } catch (err) {
+        status.innerText = "⚠️ Failed or unsupported: " + err.name;
+        details.innerText = err.message;
+      }
     });
 
-    // Particle effect
-    const hero = document.getElementById('hero');
-    for(let i=0; i<30; i++){
-      let particle = document.createElement('div');
-      particle.classList.add('particle');
-      particle.style.width = `${Math.random()*6+4}px`;
-      particle.style.height = particle.style.width;
-      particle.style.left = `${Math.random()*100}%`;
-      particle.style.top = `${Math.random()*100}%`;
-      particle.style.animationDuration = `${Math.random()*10+5}s`;
-      hero.appendChild(particle);
-    }
+    downloadBtn.addEventListener('click', () => {
+      const blob = new Blob([document.documentElement.outerHTML], { type: "text/html" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "fingerprint_test.html";
+      link.click();
+      URL.revokeObjectURL(link.href);
+    });
   </script>
 </body>
 </html>
