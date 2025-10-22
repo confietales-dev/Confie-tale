@@ -1,90 +1,292 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Fingerprint/Biometric Test</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Biometric / Passkey Test</title>
   <style>
-    body {
-      font-family: system-ui, sans-serif;
-      background: #f3f4f6;
-      text-align: center;
-      padding: 32px;
-      color: #111827;
-    }
-    .card {
-      max-width: 720px;
-      margin: 0 auto;
-      background: #fff;
-      border-radius: 12px;
-      padding: 24px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-    }
-    h1 { font-size: 22px; margin-bottom: 12px; }
-    p { color: #374151; margin-bottom: 20px; }
-    button {
-      padding: 12px 20px;
-      margin: 6px;
-      border: none;
-      border-radius: 10px;
-      background: #2563eb;
-      color: #fff;
-      cursor: pointer;
-      font-size: 16px;
-    }
-    button.download { background: #10b981; }
-    #status { margin-top: 20px; font-size: 16px; }
-    #details { font-size: 14px; color: #6b7280; margin-top: 10px; }
+    :root{--bg:#f4f6f8;--card:#fff;--primary:#0563f2;--accent:#10b981;--muted:#6b7280;--danger:#b45309}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;background:var(--bg);margin:0;padding:28px;display:flex;align-items:center;justify-content:center;min-height:100vh;color:#111827}
+    .card{max-width:760px;width:100%;background:var(--card);border-radius:12px;padding:26px;box-shadow:0 10px 30px rgba(16,24,40,.08)}
+    h1{margin:0 0 8px;font-size:22px}
+    p.lead{margin:0 0 18px;color:#374151}
+    .row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+    button{padding:12px 18px;border-radius:10px;border:0;background:var(--primary);color:#fff;font-size:15px;cursor:pointer}
+    button.secondary{background:#6b7280}
+    button.download{background:var(--accent)}
+    button.danger{background:var(--danger)}
+    #status{margin-top:18px;font-size:16px;text-align:left;white-space:pre-wrap}
+    #details{margin-top:10px;color:var(--muted);font-size:13px;white-space:pre-wrap;word-break:break-word}
+    footer{margin-top:18px;color:var(--muted);font-size:13px}
+    .small{font-size:13px;color:var(--muted)}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+    @media(max-width:520px){.grid{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
-  <div class="card">
-    <h1>Fingerprint / Biometric Support Test</h1>
-    <p>Tap the button to test your fingerprint sensor or download this test as a file.</p>
+  <div class="card" role="main">
+    <h1>Biometric / Passkey Test</h1>
+    <p class="lead">Use the buttons to <strong>register</strong> a passkey (create credential) and then <strong>authenticate</strong> with your fingerprint/biometric. This page <em>does not</em> send your biometric data anywhere — it only uses your device's secure authenticator.</p>
 
-    <button id="authBtn">Start Test</button>
-    <button class="download" id="downloadBtn">Download This Test File</button>
+    <div class="row" style="margin-bottom:8px">
+      <button id="registerBtn">Register Passkey (Create)</button>
+      <button id="authBtn">Authenticate (Verify)</button>
+      <button id="removeBtn" class="danger">Remove Stored Passkey</button>
+      <button id="downloadBtn" class="download">Download This Test File</button>
+      <button id="infoBtn" class="secondary">Show Browser Info</button>
+    </div>
 
-    <div id="status"></div>
+    <div id="status" aria-live="polite">Status: Idle.</div>
     <div id="details"></div>
+
+    <div class="grid" style="margin-top:16px">
+      <div class="small">Secure context: <span id="secureCtx">checking…</span></div>
+      <div class="small">WebAuthn available: <span id="webauthnAvail">checking…</span></div>
+      <div class="small">Platform authenticator available: <span id="platformAvail">checking…</span></div>
+      <div class="small">Stored credential ID: <span id="credId">none</span></div>
+    </div>
+
+    <footer>
+      Note: For WebAuthn to permit a platform biometric prompt the page must be served over HTTPS (GitHub Pages is OK). For a reliable test: upload this file to your GitHub Pages site, open the HTTPS URL, click <strong>Register Passkey</strong>, follow the fingerprint prompt, then try <strong>Authenticate</strong>.
+    </footer>
   </div>
 
   <script>
-    const status = document.getElementById('status');
-    const details = document.getElementById('details');
-    const authBtn = document.getElementById('authBtn');
-    const downloadBtn = document.getElementById('downloadBtn');
+  // -------------------------
+  // Helper conversion functions
+  // -------------------------
+  function bufferToBase64Url(buffer) {
+    const bytes = new Uint8Array(buffer);
+    let str = '';
+    for (let i = 0; i < bytes.byteLength; i++) str += String.fromCharCode(bytes[i]);
+    return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
 
-    authBtn.addEventListener('click', async () => {
-      details.innerText = '';
-      if (!window.PublicKeyCredential) {
-        status.innerText = "❌ Your browser doesn't support fingerprint/biometric API.";
-        return;
-      }
+  function base64UrlToBuffer(base64url) {
+    // pad
+    let base64 = base64url.replace(/-/g, '+').replace(/_/g, '/');
+    while (base64.length % 4) base64 += '=';
+    const str = atob(base64);
+    const buffer = new Uint8Array(str.length);
+    for (let i = 0; i < str.length; i++) buffer[i] = str.charCodeAt(i);
+    return buffer.buffer;
+  }
 
-      try {
-        const challenge = new Uint8Array(32);
-        window.crypto.getRandomValues(challenge);
+  function randUint8(len = 32) {
+    const buf = new Uint8Array(len);
+    crypto.getRandomValues(buf);
+    return buf;
+  }
 
-        await navigator.credentials.get({
-          publicKey: { challenge, userVerification: "required" }
-        });
+  // -------------------------
+  // Storage helper (localStorage)
+  // -------------------------
+  const STORAGE_KEY = 'webauthn_demo_credential';
 
-        status.innerText = "✅ Fingerprint detected successfully!";
-      } catch (err) {
-        status.innerText = "⚠️ Failed or unsupported: " + err.name;
-        details.innerText = err.message;
-      }
-    });
+  function saveCredential(rawIdBase64Url) {
+    localStorage.setItem(STORAGE_KEY, rawIdBase64Url);
+    updateUI();
+  }
 
-    downloadBtn.addEventListener('click', () => {
-      const blob = new Blob([document.documentElement.outerHTML], { type: "text/html" });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = "fingerprint_test.html";
-      link.click();
-      URL.revokeObjectURL(link.href);
-    });
+  function loadCredential() {
+    return localStorage.getItem(STORAGE_KEY);
+  }
+
+  function removeCredential() {
+    localStorage.removeItem(STORAGE_KEY);
+    updateUI();
+  }
+
+  // -------------------------
+  // UI elements
+  // -------------------------
+  const registerBtn = document.getElementById('registerBtn');
+  const authBtn = document.getElementById('authBtn');
+  const removeBtn = document.getElementById('removeBtn');
+  const downloadBtn = document.getElementById('downloadBtn');
+  const infoBtn = document.getElementById('infoBtn');
+  const status = document.getElementById('status');
+  const details = document.getElementById('details');
+  const secureCtxSpan = document.getElementById('secureCtx');
+  const webauthnAvailSpan = document.getElementById('webauthnAvail');
+  const platformAvailSpan = document.getElementById('platformAvail');
+  const credIdSpan = document.getElementById('credId');
+
+  // -------------------------
+  // Initialization checks
+  // -------------------------
+  function initChecks() {
+    secureCtxSpan.textContent = (location.protocol === 'https:' || location.protocol === 'file:') ? 'Yes' : 'No';
+    webauthnAvailSpan.textContent = !!window.PublicKeyCredential ? 'Yes' : 'No';
+    credIdSpan.textContent = loadCredential() || 'none';
+
+    // Check for platform authenticator
+    if (window.PublicKeyCredential && typeof PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable === 'function') {
+      PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()
+        .then(av => platformAvailSpan.textContent = av ? 'Yes' : 'No')
+        .catch(_ => platformAvailSpan.textContent = 'Error');
+    } else {
+      platformAvailSpan.textContent = 'Unknown';
+    }
+  }
+
+  function updateUI() {
+    credIdSpan.textContent = loadCredential() || 'none';
+  }
+
+  initChecks();
+
+  // -------------------------
+  // Register (create) passkey
+  // -------------------------
+  registerBtn.addEventListener('click', async () => {
+    details.textContent = '';
+    if (!window.PublicKeyCredential) {
+      status.textContent = 'Status: Browser does not support WebAuthn (PublicKeyCredential).';
+      return;
+    }
+    status.textContent = 'Status: Creating registration (passkey) — waiting for system prompt...';
+
+    try {
+      // In real apps the server provides the challenge and user ID.
+      const challenge = randUint8(32);
+      // user id must be a stable buffer - for testing we generate one and store if needed
+      const userId = randUint8(16);
+
+      const publicKey = {
+        challenge: challenge,
+        rp: { name: "Demo RP", id: location.hostname },
+        user: {
+          id: userId,
+          name: "demo-user@example.com",
+          displayName: "Demo User"
+        },
+        pubKeyCredParams: [
+          { type: "public-key", alg: -7 },   // ES256
+          { type: "public-key", alg: -257 }  // RS256
+        ],
+        timeout: 60000,
+        authenticatorSelection: {
+          authenticatorAttachment: "platform", // prefer platform (built-in) authenticator
+          userVerification: "required"
+        },
+        attestation: "none"
+      };
+
+      const cred = await navigator.credentials.create({ publicKey });
+      if (!cred) throw new Error('No credential returned');
+
+      // store rawId (base64url) locally for subsequent authentication
+      const rawId = cred.rawId;
+      const rawIdBase64Url = bufferToBase64Url(rawId);
+      saveCredential(rawIdBase64Url);
+
+      status.textContent = 'Status: ✅ Passkey created and stored on this device.';
+      details.textContent = 'Stored credential id (base64url): ' + rawIdBase64Url + '\n\nYou can now click Authenticate to verify using your biometric (fingerprint/face/PIN).';
+    } catch (err) {
+      status.textContent = 'Status: ⚠️ Registration failed: ' + (err.name || err);
+      details.textContent = (err.message ? err.message + '\n' : '') + 'If you cancelled the prompt, try again. If you see NotAllowedError, ensure the page is served via HTTPS and you didn\'t dismiss the system dialog.';
+    }
+  });
+
+  // -------------------------
+  // Authenticate (get) passkey
+  // -------------------------
+  authBtn.addEventListener('click', async () => {
+    details.textContent = '';
+    const stored = loadCredential();
+    if (!window.PublicKeyCredential) {
+      status.textContent = 'Status: Browser does not support WebAuthn (PublicKeyCredential).';
+      return;
+    }
+    if (!stored) {
+      status.textContent = 'Status: ⚠️ No passkey stored on this device. Please Register first.';
+      return;
+    }
+
+    status.textContent = 'Status: Requesting biometric for authentication...';
+
+    try {
+      const allowCred = [{
+        id: base64UrlToBuffer(stored),
+        type: 'public-key',
+        transports: ['internal']
+      }];
+
+      // challenge normally comes from server; we generate a random one for local demo
+      const challenge = randUint8(32);
+
+      const publicKey = {
+        challenge,
+        timeout: 60000,
+        allowCredentials: allowCred,
+        userVerification: 'required'
+      };
+
+      const assertion = await navigator.credentials.get({ publicKey });
+      if (!assertion) throw new Error('No credential returned');
+
+      status.textContent = 'Status: ✅ Authentication successful (biometric prompt accepted).';
+      const info = [
+        'Authenticator response type: ' + (assertion.constructor && assertion.constructor.name ? assertion.constructor.name : 'Credential'),
+        'Timestamp: ' + new Date().toLocaleString(),
+        'Credential id (base64url): ' + stored
+      ];
+      details.textContent = info.join('\n');
+    } catch (err) {
+      status.textContent = 'Status: ⚠️ Authentication failed: ' + (err.name || err);
+      details.textContent = (err.message ? err.message + '\n' : '') + 'Common reasons: timed out, prompt cancelled, or origin mismatch. Ensure you did the Register step on this same origin (domain).';
+    }
+  });
+
+  // -------------------------
+  // Remove stored passkey
+  // -------------------------
+  removeBtn.addEventListener('click', () => {
+    removeCredential();
+    status.textContent = 'Status: Stored passkey removed (local only).';
+    details.textContent = '';
+  });
+
+  // -------------------------
+  // Download self (save HTML)
+  // -------------------------
+  downloadBtn.addEventListener('click', () => {
+    const html = '<!doctype html>\\n' + document.documentElement.outerHTML;
+    const blob = new Blob([html], { type: 'text/html' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'webauthn_passkey_test.html';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(link.href), 5000);
+  });
+
+  // -------------------------
+  // Info button
+  // -------------------------
+  infoBtn.addEventListener('click', async () => {
+    const ua = navigator.userAgent || 'unknown';
+    const platform = navigator.platform || 'unknown';
+    const secure = (location.protocol === 'https:' || location.protocol === 'file:') ? 'Yes' : 'No';
+    let platformAuth = 'unknown';
+    if (window.PublicKeyCredential && typeof PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable === 'function') {
+      try { platformAuth = (await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()) ? 'Yes' : 'No'; } catch(e){ platformAuth = 'Error' }
+    }
+    details.textContent = [
+      'User Agent: ' + ua,
+      'Platform: ' + platform,
+      'Secure context (HTTPS/file): ' + secure,
+      'PublicKeyCredential available: ' + (!!window.PublicKeyCredential),
+      'Platform authenticator available: ' + platformAuth,
+      'Stored credential id: ' + (loadCredential() || 'none')
+    ].join('\\n');
+    status.textContent = 'Status: Info shown.';
+  });
+
+  // Final UI update
+  updateUI();
   </script>
 </body>
 </html>
