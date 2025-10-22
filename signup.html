@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign Up | Confie Tales</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <style>
+    /* Signup Page Specific */
+    .signup-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+      background: radial-gradient(circle at top, #5fe8c1, #7f5af0, #a37cf0);
+      color: white;
+    }
+
+    .signup-box {
+      background: rgba(0,0,0,0.35);
+      backdrop-filter: blur(12px);
+      padding: 40px;
+      border-radius: 25px;
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+      box-shadow: 0 0 25px rgba(0,0,0,0.4);
+      animation: popUp 0.8s ease-in-out;
+    }
+
+    .signup-box h2 {
+      font-family: 'Great Vibes', cursive;
+      color: #ffd166;
+      margin-bottom: 25px;
+      font-size: 2.5em;
+    }
+
+    .signup-box input {
+      width: 100%;
+      padding: 12px 15px;
+      margin: 12px 0;
+      border-radius: 20px;
+      border: none;
+      outline: none;
+      font-size: 1em;
+    }
+
+    .signup-box .btn {
+      width: 100%;
+      margin-top: 15px;
+    }
+
+    .signup-box p {
+      margin-top: 20px;
+      font-size: 0.95em;
+      opacity: 0.8;
+    }
+
+    .signup-box a {
+      color: #ffd166;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="signup-container">
+    <div class="signup-box">
+      <h2>Sign Up</h2>
+      <input type="text" id="displayName" placeholder="Full Name" required />
+      <input type="email" id="email" placeholder="Email" required />
+      <input type="password" id="password" placeholder="Password" required />
+      <button class="btn" id="signupBtn">Sign Up</button>
+      <p>Already have an account? <a href="login.html">Login</a></p>
+    </div>
+  </div>
+
+  <script type="module">
+    import { getAuth, createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCkfB1jZfkdzNwh9nWAau74GZn2EDunEK4",
+      authDomain: "confie-tales.firebaseapp.com",
+      projectId: "confie-tales",
+      storageBucket: "confie-tales.firebasestorage.app",
+      messagingSenderId: "528057107081",
+      appId: "1:528057107081:web:d590e4c3325b70ffbefc58",
+      measurementId: "G-T8EWYSPZ1T"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    const signupBtn = document.getElementById('signupBtn');
+    signupBtn.addEventListener('click', () => {
+      const displayName = document.getElementById('displayName').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value.trim();
+
+      if(!displayName || !email || !password) {
+        alert("Please fill in all fields.");
+        return;
+      }
+
+      createUserWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          const user = userCredential.user;
+          updateProfile(user, { displayName: displayName })
+            .then(() => {
+              alert("Signup successful!");
+              window.location.href = "login.html";
+            });
+        })
+        .catch((error) => {
+          alert(error.message);
+        });
+    });
+  </script>
+</body>
+</html>
+
